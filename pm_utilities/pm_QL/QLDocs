@@ -1,0 +1,153 @@
+// 2025-02-25
+
+STORAGE Set
+A Storage set consists of multiple Datasets (see below) stored in a single CSV file,
+demarcated by a Dataset separator <<<|||>>> at beginning of the first line of the Dataset.
+A typical storage set will consist of a dataset of type data, plus possibly two specially named
+datasets:
+- TRANSFORMS (see below for example) which contains transforms (see below) to be applied to data
+- PARAMETERS parameters for the TRANSFORMS (see below for example)
+
+
+DATASET:
+A dataSet has:
+- [attributeName:attributeValue,]
+- table
+
+Where attribute can be:
+- name:name
+- save: save // save dataSet back to permanent storage, default not
+- sort:(col|[down],)* // sort table on load/save by colum list
+- show:edit|hide // show table for user edit, hide it
+- type:any
+- timeStamp:time // last mod time
+- schema:schemaString // schema of the table
+
+Where schemaString:
+(columnSpecs,)*
+
+Where columnSpec:
+- columnName(|colAttribute)*
+Where colAttribute:
+WIDTHS
+'wXS';'wS';'wM';'wL';'wXL';'wXXL';
+TYPES
+'tS'; // string
+'tI'; // in
+'tN'; // decimal
+'tB'; // boolean
+EDIT:
+'eD': row will be deleted if blank
+'eF'; // not user editable
+'eN'; // may not be null; 'eB' field may be left blank, in which case it does not participate in columnar ops
+VISIBILITY
+'vI'; // column is invisible
+'vF'; // column is fixed wrt horizontal scroll
+SUMMARY
+'s': summary controls are indicated by 'sXXX' where XXX = SUM | AVG | COUNT | MIN | MAX
+INITIAL
+'i': initial Value - ixxxx where xxxx is the default value for the field, xxxx is a string  | DATE (current date) | TIME (current time)
+
+
+DATASET TRANSFORMS:
+
+COMBINE dataSet dataSet1 column // join 2 dataSets on common column
+COMPUTE dataSet expression colSchema // compute a new column using expression
+COPY dataSet dataSet1 [attributeList] // create a new dataSet1 by copying dataSet, setting attributes
+DELETE dataSet // delete dataSet from storage
+DROP dataSet columnList // delete columns from dataSet
+GROUP dataSet [column] columnSchema* // group dataSet by column, using columnSchema* for new summary columns, null means apply to all rows
+KEEP dataSet n // keep only first n rows
+PRINT dataSet // on console
+REM remark // remark or comment
+SAVE // write all datasets marked save out to store
+SELECT dataSet columnList // drop columns not in columnList
+SORT dataSet column [DOWN] // sort dataSet on column, default is UP
+WHERE dataSet expression // keep only rows where expression is TRUE (non-zero)
+WRITECSV dataSet filePath // write the dataSet out in XLS CSV format to filePath
+WRITESET dataSet filePath // write the dataSet out in PMDataSet format to filePath
+
+EXPRESSIONS:
+
+Note:
+	String constants are in single quotes ' '.
+	Booleans: 0 (FALSE) and non-0 (TRUE).
+
+Precedence, where XXX = ColumnName | 'String' | Number | Expression
+
+- boolean expression // negation
+
+// Columnar ops
+AVG column // average of column, blank or zero entries skipped
+MIN column // minimum value in column, zero ignored
+MAX column // max value
+SUM column // sum of column
+COUNT column // count of non-blank entries in column
+
+// String
+TOSTRING XXX // converts to string
+ROWSTR // concatenates all entries in row to one string
+str1 SUBSTR int1 int2 // substring start length
+exp1 CONCAT exp2 // converts to string and concatenates
+str1 REGEXP str2 // does str1 match Regexp(str2)
+
+// Date and Time
+EPOCHINMS // number of millisecs since epoch
+EPCOHINDAYS date // number of days since 1900, date must be in YYYY/MM/DD format
+DATENOW // today's date yyyy/mm/dd
+TIMENOW // time now XXhYYm
+
+
+// Precision
+TRUNC num // truncates number
+ROUND num int // rounds num to int places
+RANDOM // random double betweeen o and 1
+
+// Conditional
+exp1 ? exp2 exp3 // is exp1 is true then exp2, else exp3
+
+// Arithmetic
+num1 ^ num2 // num1 to power of num2 
+num1 * num2 
+num1 / num2 
+num1 % num2 // modulus
+num1 - num2
+num1 + num2
+
+// Logical
+! exp
+exp1 < exp2
+exp1 > exp2
+exp1 <= exp2
+exp1 >= exp2
+exp1 == exp2
+exp1 != exp2
+exp1 && exp2 // AND
+exp1 || exp2 // OR
+
+// EXAMPLES
+
+<<<|||>>>,name:FLIGHTS,type:data,sort:Date|down,save:save,show:edit,\
+timeStamp:2021/06/24 11h41m55,\
+"schema:F#|tI|vI|wS,Date|tD|eN|vF|wL,Reg|tS|eN|wM,From|tS|eN|wS,To|tS|eN|wS,PIC|tN|wS,Type|tS|wM,Ldgs|tI|wS,Aprcs|tI|wS,Comments|tS|wXXL,Dual|tN|wS,ActI|tN|wS,SimI|tN|wS,Night|tN|wS,Sim|tN|wS"
+1624485682670,2021/06/23,N824MZ,CYYJ,KBLI,0.3,AEST,1,0,,0.0,0.0,0.0,0.0,0.0
+1624485713702,2021/06/23,N824MZ,KBLI,KBFI,0.5,AEST,1,0,,0.0,0.0,0.0,0.0,0.0
+1624485643234,2021/06/22,N824MZ,KBFI,CYYJ,0.5,AEST,1,0,,0.0,0.0,0.0,0.0,0.0
+...
+
+<<<|||>>>,name:TRANSFORMS,type:transforms,save:save,show:edit,\
+timeStamp:2021null03null27 13,\
+"schema:Verb|tS|wXXL|dCOPY|dWHERE|dGROUP|dCOMBINE|dCOMPUTE|dSORT|dSELECT|dKEEP|dREM|dPRINT,Param0|tS|wXXL,Param1|tS|wXXL,Param2|tS|wXXL,Param3|tS|wL"
+WHERE,Vital Stats,Date >= _DATEAFTER,,
+COPY,Vital Stats,TimeOfDay,,
+...
+
+<<<|||>>>,name:PARAMETERS,type:data,save:save,show:edit,timeStamp:2021/06/24 21h05m47,\
+"schema:Name|tS|wL,Value|tS|wL"
+_TIMEBEFORE,23h59
+_TIMEAFTER,00h00
+_HEARTLOWER,40
+_HEARTUPPER,90
+_DATEAFTER,2021/03/01
+
+
