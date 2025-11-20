@@ -155,13 +155,6 @@ class _DisplayImageScreenState extends State<DisplayImageScreen> {
                 if (moveFlag) apMakeMoveTargetsRow(model, model.setMoveTargets),
                 pmSpacerV(),
                 PMRoundIconButton(
-                    message: 'flag for deletion',
-                    icon: Icons.delete,
-                    onPressed: () {
-                      model.flagForDeletion(model.currentIndex);
-                    },
-                    color: fi.toBeDeleted ? Colors.red : Colors.blueAccent),
-                PMRoundIconButton(
                   message: 'show rename/resize/tag screen',
                   color: kpmColorAmber,
                   icon: MdiIcons.cog,
@@ -227,6 +220,16 @@ class _DisplayImageScreenState extends State<DisplayImageScreen> {
                         onPressed: () {
                           model.jumpToOffset(1);
                         }),
+                ]),
+                pmRow([
+                  pmSpacerH(w: 48),
+                  PMRoundIconButton(
+                      message: 'flag for deletion',
+                      icon: Icons.delete,
+                      onPressed: () {
+                        model.flagForDeletion(model.currentIndex);
+                      },
+                      color: fi.toBeDeleted ? Colors.red : Colors.orangeAccent),
                 ]),
               ]),
             ],

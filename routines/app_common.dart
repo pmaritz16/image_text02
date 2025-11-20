@@ -4,7 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import 'package:image_text02/routines/model.dart';
 
-const kAppRevision = '2025-11-19';
+const kAppRevision = '2025-11-20';
 
 List<String> kMoveTargets = [
   'c1',
